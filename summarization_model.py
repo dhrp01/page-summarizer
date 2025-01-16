@@ -2,7 +2,8 @@ import evaluate
 import nltk
 import numpy as np
 import transformers
-from datasets import load_dataset, load_metric
+# from datasets import load_dataset, load_metric
+import datasets
 from huggingface_hub import notebook_login
 from nltk.tokenize import sent_tokenize
 from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, T5Tokenizer, T5ForConditionalGeneration
@@ -12,12 +13,15 @@ import torch
 if torch.backends.mps.is_available():
     device = torch.device("mps")
     print("Using MPS backend for Apple M1 GPU")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+    print("Using CUDA")
 else:
-    print("MPS is not available, using CPU")
+    print("MPS or CUDA is not available, using CPU")
     device = torch.device("cpu")
 
 # loading the dataset
-news_dataset = load_dataset("multi_news")
+news_dataset = datasets.load_dataset("multi_news")
 
 
 def show_data_samples(dataset, samples=2, suffle=20):
@@ -36,7 +40,7 @@ model = T5ForConditionalGeneration.from_pretrained(model_checkpoint)
 model.to(device)
 
 max_input_length = 1000
-max_target_length = 100
+max_target_length = 250
 
 
 def preprocess_function(dataset):
@@ -50,10 +54,10 @@ def preprocess_function(dataset):
 
 tokenized_datasets = news_dataset.map(preprocess_function, batched=True)
 
-rouge_score = load_metric("rouge")
+rouge_score = datasets.load_metric("rouge")
 nltk.download("punkt")
 
-batch_size = 2
+batch_size = 16
 num_train_epochs = 10
 logging_steps = len(tokenized_datasets['train']) // batch_size
 model_name = model_checkpoint.split("/")[-1]
@@ -110,5 +114,4 @@ trainer = Seq2SeqTrainer(
 )
 
 trainer.evaluate()
-trainer.push_to_hub(
-    commit_message="Paper Summarization Complete", tags="summarization")
+trainer.push_to_hub(commit_message="Paper Summarization Complete", tags="summarization")
