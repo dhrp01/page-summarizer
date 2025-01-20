@@ -1,13 +1,1 @@
-torch 
-torchvision 
-torchaudio
-transformers 
-transformers[sentencepiece] 
-datasets 
-tokenizer 
-sentencepiece 
-rouge-score
-evaluate
-nltk
-huggingface_hub
 transformers[torch]

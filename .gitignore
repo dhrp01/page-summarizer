@@ -1,3 +1,7 @@
 .venv
 mt5-small_summarization
 .vs
+trained_model
+training*
+.DS_Store
+*.zip
